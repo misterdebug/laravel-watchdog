@@ -22,7 +22,5 @@
                 "MrDebug\\LaravelWatchdog\\LaravelWatchdogServiceProvider"
             ]
         }
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true
+    }
 }
