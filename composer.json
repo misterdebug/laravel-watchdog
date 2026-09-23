@@ -1,0 +1,28 @@
+{
+    "name": "mrdebug/laravel-watchdog",
+    "description": "Monitoring package for Laravel: 404/422/500 tracking, visits, activity, login attempts, sent emails, with Discord alerts.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jonathan Escarem",
+            "email": "jonathan@labo-dev.fr"
+        }
+    ],
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "MrDebug\\LaravelWatchdog\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "MrDebug\\LaravelWatchdog\\LaravelWatchdogServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
