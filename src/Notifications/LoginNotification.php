@@ -17,7 +17,7 @@ class LoginNotification extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return ['discord'];
+        return ['watchdog-discord'];
     }
 
     public function toDiscord(): array

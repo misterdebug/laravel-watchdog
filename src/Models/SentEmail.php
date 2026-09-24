@@ -9,7 +9,7 @@ class SentEmail extends Model
 {
     use Prunable;
 
-    protected $table = 'sent_emails';
+    protected $table = 'watchdog_sent_emails';
 
     protected $guarded = [];
 

@@ -9,7 +9,7 @@ class LoginAttempt extends Model
 {
     use Prunable;
 
-    protected $table = 'login_attempts';
+    protected $table = 'watchdog_login_attempts';
 
     protected $guarded = [];
 

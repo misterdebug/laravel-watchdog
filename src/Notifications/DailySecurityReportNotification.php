@@ -16,7 +16,7 @@ class DailySecurityReportNotification extends Notification
 
     public function via($notifiable): array
     {
-        return ['discord'];
+        return ['watchdog-discord'];
     }
 
     public function toDiscord(): array

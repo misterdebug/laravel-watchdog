@@ -6,15 +6,21 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class DiscordChannel
+class WatchdogDiscordChannel
 {
+    public static function isEnabled(): bool
+    {
+        return ! config('laravel-watchdog.discord.only_production', true)
+            || app()->isProduction();
+    }
+
     public function send($notifiable, Notification $notification): void
     {
-        if (config('laravel-watchdog.discord.only_production', true) && ! app()->isProduction()) {
+        if (! static::isEnabled()) {
             return;
         }
 
-        $url = $notifiable->routeNotificationFor('discord');
+        $url = $notifiable->routeNotificationFor('watchdog-discord');
 
         if (empty($url)) {
             Log::warning('[laravel-watchdog] Discord webhook URL not configured', [

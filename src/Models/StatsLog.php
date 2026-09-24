@@ -9,7 +9,7 @@ class StatsLog extends Model
 {
     use Prunable;
 
-    protected $table = 'stats_logs';
+    protected $table = 'watchdog_stats_logs';
 
     protected $guarded = [];
 

@@ -8,7 +8,7 @@ return [
         'activity' => true,
         'security_404' => true,
         'security_422' => true,
-        'security_500' => true,
+        'error500_alert' => true, // Discord alert only; no database log
         'login_attempts' => true,
         'sent_emails' => true,
     ],
@@ -63,10 +63,10 @@ return [
         'sent_emails' => 30,
     ],
 
-    // Fields excluded from traffic logs (stats_logs / activity_logs)
+    // Fields excluded from traffic logs (watchdog_stats_logs / watchdog_activity_logs)
     'traffic_excluded_params' => ['password', 'password_confirmation', '_token'],
 
-    // Fields excluded from security logs (404 / 422). Empty by default, on purpose.
+    // Fields excluded from security logs (watchdog_security_logs: 404 / 422). Empty by default, on purpose.
     'security_excluded_params' => [],
 
     'sent_emails' => [

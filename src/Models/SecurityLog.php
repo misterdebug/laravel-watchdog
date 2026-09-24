@@ -9,7 +9,7 @@ class SecurityLog extends Model
 {
     use Prunable;
 
-    protected $table = 'security_logs';
+    protected $table = 'watchdog_security_logs';
 
     protected $guarded = [];
 

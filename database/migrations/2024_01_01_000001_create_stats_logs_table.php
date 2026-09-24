@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('stats_logs', function (Blueprint $table) {
+        Schema::create('watchdog_stats_logs', function (Blueprint $table) {
             $table->id();
             $table->string('route_name')->nullable();
             $table->string('method', 10);
@@ -29,6 +29,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('stats_logs');
+        Schema::dropIfExists('watchdog_stats_logs');
     }
 };

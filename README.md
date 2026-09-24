@@ -10,11 +10,11 @@ Telescope is a great tool, but it solves a different problem. It is built to giv
 
 Watchdog exists for a narrower, more specific need:
 
-- **Built for production, not for debugging sessions.** Telescope is generally not recommended to run permanently in production without pruning and careful configuration, because it records everything by default. Watchdog only records a small, deliberate set of events (errors, visits, logins, emails) and prunes itself automatically.
+- **Built for production, not for debugging sessions.** Telescope is generally not recommended to run permanently in production without pruning and careful configuration, because it records everything by default. Watchdog only records a small, deliberate set of events (errors, visits, logins, emails) and provides a dedicated pruning command.
 - **Alerting first, browsing second.** Telescope gives you a dashboard to look at after the fact. Watchdog is built around pushing alerts to Discord the moment something happens (a 500 error, a suspicious login pattern, an admin connecting), so you find out without having to go look.
 - **Security oriented by default.** Watchdog separates public traffic from authenticated activity, tracks failed and successful login attempts, and can detect brute force patterns automatically. This is not something Telescope tracks out of the box.
-- **Minimal footprint.** Five simple tables, no UI to maintain, no extra JavaScript assets, no dashboard route to protect. Configurable retention (via Laravel's native `Prunable` trait) keeps storage under control without any extra setup.
-- **You keep your own Discord notifications.** Watchdog does not try to own how your alerts look. It ships default notification classes but expects you to plug in your own if you already have a Discord notification channel configured in your app.
+- **Minimal footprint.** Five simple tables, no UI to maintain, no extra JavaScript assets, no dashboard route to protect. Configurable retention and the `watchdog:prune` command keep storage under control.
+- **You keep your own Discord notifications.** Watchdog does not try to own how your alerts look. It ships default notification classes and uses the dedicated `watchdog-discord` channel to avoid conflicts with your application's channels.
 
 In short: Telescope answers "what happened in this app in general", Watchdog answers "is anything wrong right now, and can someone tell me on Discord".
 
@@ -22,11 +22,11 @@ In short: Telescope answers "what happened in this app in general", Watchdog ans
 
 | Table | Content |
 |---|---|
-| `stats_logs` | Every request on your public, non authenticated routes |
-| `activity_logs` | Every request on your authenticated routes, tied to a `user_id` |
-| `security_logs` | Every 404, 422 and 500 response |
-| `login_attempts` | Every successful and failed login attempt |
-| `sent_emails` | Every email sent by the application |
+| `watchdog_stats_logs` | Every request on your public, non authenticated routes |
+| `watchdog_activity_logs` | Every request on your authenticated routes, tied to a `user_id` |
+| `watchdog_security_logs` | Every 404 and 422 response |
+| `watchdog_login_attempts` | Every successful and failed login attempt |
+| `watchdog_sent_emails` | Every email sent by the application |
 
 ## Installation
 
@@ -39,7 +39,7 @@ php artisan migrate
 This registers the service provider automatically, which in turn:
 
 - registers the migrations
-- registers a `discord` notification channel
+- registers a `watchdog-discord` notification channel
 - registers the `Login`, `Failed` and `MessageSent` event listeners (if enabled in config)
 - registers the `log-stats` and `log-activity` middleware aliases
 
@@ -57,7 +57,7 @@ Route::middleware(['auth', 'log-activity'])->group(function () {
 });
 ```
 
-`log-stats` records into `stats_logs` and skips admin users. `log-activity` records into `activity_logs`, requires an authenticated user, and also skips admins.
+`log-stats` records into `watchdog_stats_logs` and skips admin users. `log-activity` records into `watchdog_activity_logs`, requires an authenticated user, and also skips admins.
 
 ## Exception handler (404 / 422 / 500)
 
@@ -73,13 +73,14 @@ use MrDebug\LaravelWatchdog\Support\ExceptionHandler as WatchdogExceptionHandler
 })
 ```
 
-This single call wires up 404 and 422 logging into `security_logs`, and 500 reporting to Discord (rate limited, production only).
+This single call wires up 404 and 422 logging into `watchdog_security_logs`, and 500 reporting to Discord (rate limited, no database log for 500 responses).
 
 ## Artisan commands
 
 ```bash
 php artisan watchdog:analyze-logins
 php artisan watchdog:daily-security-report
+php artisan watchdog:prune
 ```
 
 Suggested scheduling, in `routes/console.php` or your scheduler of choice:
@@ -87,10 +88,10 @@ Suggested scheduling, in `routes/console.php` or your scheduler of choice:
 ```php
 $schedule->command('watchdog:analyze-logins')->hourly();
 $schedule->command('watchdog:daily-security-report')->dailyAt('08:00');
-$schedule->command('model:prune')->daily();
+$schedule->command('watchdog:prune')->daily();
 ```
 
-`model:prune` is Laravel's own command, it will automatically call `prunable()` on every Watchdog model and delete old rows based on the retention values in your config.
+`watchdog:prune` calls the `prunable()` query on every Watchdog model and deletes old rows based on the retention values in your config.
 
 ## Configuration reference
 
@@ -102,13 +103,13 @@ Enables or disables each tracked event independently. Turning a feature off skip
 
 ```php
 'features' => [
-    'stats' => true,            // stats_logs (public traffic)
-    'activity' => true,         // activity_logs (authenticated traffic)
+    'stats' => true,            // watchdog_stats_logs (public traffic)
+    'activity' => true,         // watchdog_activity_logs (authenticated traffic)
     'security_404' => true,     // 404 recording
     'security_422' => true,     // 422 recording
-    'security_500' => true,     // 500 recording and Discord alert
-    'login_attempts' => true,   // login_attempts table + admin login alert
-    'sent_emails' => true,      // sent_emails table
+    'error500_alert' => true,   // 500 Discord alert only; no database log
+    'login_attempts' => true,   // watchdog_login_attempts table + admin login alert
+    'sent_emails' => true,      // watchdog_sent_emails table
 ],
 ```
 
@@ -118,11 +119,9 @@ Enables or disables each tracked event independently. Turning a feature off skip
 'discord' => [
     'only_production' => true,
     'webhooks' => [
-        'beta' => env('DISCORD_WEBHOOK_BETA'),
         'logins' => env('DISCORD_WEBHOOK_LOGINS'),
         'errors500' => env('DISCORD_WEBHOOK_ERRORS'),
         'security-logs' => env('DISCORD_WEBHOOK_SECURITY_LOGS'),
-        'contacts' => env('DISCORD_WEBHOOK_CONTACTS'),
     ],
 ],
 ```
@@ -141,7 +140,7 @@ Enables or disables each tracked event independently. Turning a feature off skip
 ],
 ```
 
-Each key points to the notification class used for that event. The package ships a default, generic implementation for all four. Replace any of these with your own class (for example, one you already use in your app) to change the Discord message content without touching the package itself. Your custom class only needs to implement `via()` returning `['discord']` and a `toDiscord()` method returning an array with a `content` key.
+Each key points to the notification class used for that event. The package ships a default, generic implementation for all four. Replace any of these with your own class (for example, one you already use in your app) to change the Discord message content without touching the package itself. Your custom class only needs to implement `via()` returning `['watchdog-discord']` and a `toDiscord()` method returning an array with a `content` key.
 
 ### `admin_check`
 
@@ -152,7 +151,7 @@ Each key points to the notification class used for that event. The package ships
 ],
 ```
 
-Used everywhere the package needs to know if a user is an admin (skipping them from `stats_logs`/`activity_logs`, sending a direct Discord alert instead of a plain database row on login). By default it checks `$user->role === 'admin'`. Adjust `field` and `value` to match your own user model.
+Used everywhere the package needs to know if a user is an admin (skipping them from `watchdog_stats_logs`/`watchdog_activity_logs`, sending a direct Discord alert instead of a plain database row on login). By default it checks `$user->role === 'admin'`. Adjust `field` and `value` to match your own user model.
 
 ### `suspicious_activity`
 
@@ -191,7 +190,7 @@ Prevents a single recurring 500 error from flooding Discord. At most `max_attemp
 ],
 ```
 
-Number of days each table keeps its rows. Every model uses Laravel's native `Prunable` trait, so running `php artisan model:prune` (ideally on a daily schedule) deletes anything older than the configured number of days. Set a higher value for tables you want to keep longer for audit purposes, and a lower value for high volume, low value tables like `stats_logs`.
+Number of days each table keeps its rows. Every model uses Laravel's native `Prunable` trait, so running `php artisan watchdog:prune` (ideally on a daily schedule) deletes anything older than the configured number of days. Set a higher value for tables you want to keep longer for audit purposes, and a lower value for high volume, low value tables like `watchdog_stats_logs`.
 
 ### `traffic_excluded_params`
 
@@ -199,7 +198,7 @@ Number of days each table keeps its rows. Every model uses Laravel's native `Pru
 'traffic_excluded_params' => ['password', 'password_confirmation', '_token'],
 ```
 
-Request fields excluded from the `params` column when recording into `stats_logs` and `activity_logs`. Add any other sensitive field name here (API tokens, credit card fields, etc) to keep them out of the database.
+Request fields excluded from the `params` column when recording into `watchdog_stats_logs` and `watchdog_activity_logs`. Add any other sensitive field name here (API tokens, credit card fields, etc) to keep them out of the database.
 
 ### `security_excluded_params`
 
@@ -207,7 +206,7 @@ Request fields excluded from the `params` column when recording into `stats_logs
 'security_excluded_params' => [],
 ```
 
-Same idea, but for `security_logs` (404 and 422 events). It is empty by default, on purpose: the intent is to capture the full request payload when something goes wrong, including form fields, so you can reproduce and debug the issue. If you would rather never store certain fields even in error logs, add them here.
+Same idea, but for `watchdog_security_logs` (404 and 422 events). It is empty by default, on purpose: the intent is to capture the full request payload when something goes wrong, including form fields, so you can reproduce and debug the issue. If you would rather never store certain fields even in error logs, add them here.
 
 ### `sent_emails`
 
@@ -222,7 +221,7 @@ Same idea, but for `security_logs` (404 and 422 events). It is empty by default,
 
 ## Default notifications
 
-The package ships four ready to use Discord notifications. Each one implements `via() => ['discord']` and a `toDiscord()` method returning `['content' => string]`, so they work directly with the `discord` channel registered by the package. You can use them as is, or replace any of them through the `notifications` config key (see above).
+The package ships four ready to use Discord notifications. Each one implements `via() => ['watchdog-discord']` and a `toDiscord()` method returning `['content' => string]`, so they work directly with the `watchdog-discord` channel registered by the package. You can use them as is, or replace any of them through the `notifications` config key (see above).
 
 ### `LoginNotification`
 
@@ -242,7 +241,7 @@ IP: 203.0.113.10
 
 ### `Error500Notification`
 
-Triggered by the exception handler for any non HTTP exception (an actual server error, not a 404/422/etc), in production only, and rate limited per exception class (see `rate_limit.error500`).
+Triggered by the exception handler for any non HTTP exception (an actual server error, not a 404/422/etc), and rate limited per exception class (see `rate_limit.error500`). The default notification is queued through Laravel's notification queue when the application uses a non-synchronous queue connection. Set `discord.only_production` to control whether it is sent outside production.
 
 ```php
 new Error500Notification(string $message, string $file, int $line);
@@ -257,7 +256,7 @@ Example message:
 https://example.com/invoices/12
 ```
 
-The URL is read from the current request when available, and falls back to `n/a` when the exception happens outside an HTTP context (a queued job or an artisan command, for example).
+The URL is captured when the exception is reported, before the notification is queued.
 
 ### `SuspiciousActivityNotification`
 
@@ -300,4 +299,4 @@ Example message:
 
 ## Overriding notifications entirely
 
-If you prefer to keep using your own existing notification classes instead of the package's defaults, just point the relevant `notifications.*` config key to your own class. As long as it returns `['discord']` from `via()` and implements `toDiscord()`, it will work with the Discord channel registered by the package, no other change required.
+If you prefer to keep using your own existing notification classes instead of the package's defaults, just point the relevant `notifications.*` config key to your own class. As long as it returns `['watchdog-discord']` from `via()` and implements `toDiscord()`, it will work with the Discord channel registered by the package, no other change required.

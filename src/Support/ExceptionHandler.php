@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use MrDebug\LaravelWatchdog\Models\SecurityLog;
+use MrDebug\LaravelWatchdog\Notifications\Channels\WatchdogDiscordChannel;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
@@ -15,17 +16,17 @@ use Throwable;
 class ExceptionHandler
 {
     /**
-     * A appeler dans bootstrap/app.php, a l'interieur de withExceptions().
+     * Call this method in bootstrap/app.php, inside withExceptions().
      */
     public static function register(Exceptions $exceptions): void
     {
-        if (config('laravel-watchdog.features.security_500')) {
+        if (config('laravel-watchdog.features.error500_alert')) {
             $exceptions->report(function (Throwable $e) {
                 if ($e instanceof HttpExceptionInterface) {
                     return;
                 }
 
-                if (! app()->isProduction()) {
+                if (! WatchdogDiscordChannel::isEnabled()) {
                     return;
                 }
 
@@ -61,7 +62,7 @@ class ExceptionHandler
                     $notificationClass = config('laravel-watchdog.notifications.error500');
 
                     Notification::route(
-                        'discord',
+                        'watchdog-discord',
                         config('laravel-watchdog.discord.webhooks.errors500')
                     )->notify(new $notificationClass(
                         $e->getMessage(),

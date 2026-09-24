@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('login_attempts', function (Blueprint $table) {
+        Schema::create('watchdog_login_attempts', function (Blueprint $table) {
             $table->id();
             $table->string('email')->nullable();
             $table->string('ip', 45)->nullable();
@@ -24,6 +24,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('login_attempts');
+        Schema::dropIfExists('watchdog_login_attempts');
     }
 };

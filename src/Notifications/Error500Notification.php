@@ -3,21 +3,26 @@
 namespace MrDebug\LaravelWatchdog\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class Error500Notification extends Notification
+class Error500Notification extends Notification implements ShouldQueue
 {
     use Queueable;
+
+    protected string $url;
 
     public function __construct(
         protected string $message,
         protected string $file,
         protected int $line
-    ) {}
+    ) {
+        $this->url = request()->fullUrl();
+    }
 
     public function via($notifiable): array
     {
-        return ['discord'];
+        return ['watchdog-discord'];
     }
 
     public function toDiscord(): array
@@ -28,7 +33,7 @@ class Error500Notification extends Notification
                 $this->message,
                 $this->file,
                 $this->line,
-                request()?->fullUrl() ?? 'n/a'
+                $this->url
             ),
         ];
     }

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('sent_emails', function (Blueprint $table) {
+        Schema::create('watchdog_sent_emails', function (Blueprint $table) {
             $table->id();
             $table->string('to')->nullable();
             $table->string('subject')->nullable();
@@ -21,6 +21,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('sent_emails');
+        Schema::dropIfExists('watchdog_sent_emails');
     }
 };

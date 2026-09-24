@@ -14,6 +14,12 @@ class AnalyzeSuspiciousLogins extends Command
 
     public function handle(): void
     {
+        if (! config('laravel-watchdog.features.login_attempts')) {
+            $this->info('Login attempt monitoring is disabled.');
+
+            return;
+        }
+
         $windowMinutes = config('laravel-watchdog.suspicious_activity.window_minutes', 60);
         $thresholdEmail = config('laravel-watchdog.suspicious_activity.threshold_per_email', 5);
         $thresholdIp = config('laravel-watchdog.suspicious_activity.threshold_per_ip', 5);
@@ -42,7 +48,7 @@ class AnalyzeSuspiciousLogins extends Command
 
         $notificationClass = config('laravel-watchdog.notifications.suspicious_activity');
 
-        Notification::route('discord', config('laravel-watchdog.discord.webhooks.logins'))
+        Notification::route('watchdog-discord', config('laravel-watchdog.discord.webhooks.logins'))
             ->notify(new $notificationClass($byEmail, $byIp));
 
         $this->info('Alert sent to Discord.');

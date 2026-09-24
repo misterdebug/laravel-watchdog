@@ -10,12 +10,13 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use MrDebug\LaravelWatchdog\Console\AnalyzeSuspiciousLogins;
+use MrDebug\LaravelWatchdog\Console\PruneWatchdogLogs;
 use MrDebug\LaravelWatchdog\Console\SendDailySecurityReport;
 use MrDebug\LaravelWatchdog\Listeners\LogLoginAttempt;
 use MrDebug\LaravelWatchdog\Listeners\LogSentEmail;
 use MrDebug\LaravelWatchdog\Middleware\LogActivity;
 use MrDebug\LaravelWatchdog\Middleware\LogStats;
-use MrDebug\LaravelWatchdog\Notifications\Channels\DiscordChannel;
+use MrDebug\LaravelWatchdog\Notifications\Channels\WatchdogDiscordChannel;
 
 class LaravelWatchdogServiceProvider extends ServiceProvider
 {
@@ -38,19 +39,20 @@ class LaravelWatchdogServiceProvider extends ServiceProvider
 
             $this->commands([
                 AnalyzeSuspiciousLogins::class,
+                PruneWatchdogLogs::class,
                 SendDailySecurityReport::class,
             ]);
         }
 
-        $this->registerDiscordChannel();
+        $this->registerWatchdogDiscordChannel();
         $this->registerEventListeners();
         $this->registerMiddlewareAliases();
     }
 
-    protected function registerDiscordChannel(): void
+    protected function registerWatchdogDiscordChannel(): void
     {
         $this->app->make(ChannelManager::class)
-            ->extend('discord', fn () => new DiscordChannel());
+            ->extend('watchdog-discord', fn () => new WatchdogDiscordChannel());
     }
 
     protected function registerEventListeners(): void
