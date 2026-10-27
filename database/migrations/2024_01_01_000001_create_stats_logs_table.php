@@ -17,13 +17,12 @@ return new class extends Migration
             $table->string('ip', 45)->nullable();
             $table->string('session_id')->nullable();
             $table->text('user_agent')->nullable();
-            $table->string('referer')->nullable();
+            $table->string('referer', 2048)->nullable();
             $table->unsignedSmallInteger('response_code');
             $table->unsignedInteger('duration_ms')->nullable();
             $table->timestamps();
 
             $table->index('created_at');
-            $table->index('response_code');
         });
     }
 

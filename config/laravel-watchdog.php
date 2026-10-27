@@ -36,7 +36,7 @@ return [
     // Determines how to identify an admin user
     'admin_check' => [
         'field' => 'role',
-        'value' => 'admin',
+        'value' => ['admin', 'super-admin]',
     ],
 
     // Thresholds for suspicious activity detection (login_attempts)

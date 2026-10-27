@@ -12,6 +12,11 @@ class SentEmail extends Model
     protected $table = 'watchdog_sent_emails';
 
     protected $guarded = [];
+    protected $casts = [
+        'recipients'  => 'array',
+        'attachments' => 'array',
+        'headers'     => 'array',
+    ];
 
     public function prunable()
     {

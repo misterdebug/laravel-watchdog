@@ -2,6 +2,7 @@
 
 namespace MrDebug\LaravelWatchdog\Support;
 
+use Exception;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
@@ -42,7 +43,7 @@ class ExceptionHandler
 
         if (config('laravel-watchdog.features.security_422')) {
             $exceptions->render(function (ValidationException $e, Request $request) {
-                static::logSecurityEvent($request, 422);
+                static::logSecurityEvent($request, 422, $e->errors());
             });
         }
     }
@@ -77,24 +78,30 @@ class ExceptionHandler
         );
     }
 
-    protected static function logSecurityEvent(Request $request, int $responseCode): void
+    protected static function logSecurityEvent(Request $request, int $responseCode, ?array $errors = null): void
     {
         try {
             $excluded = config('laravel-watchdog.security_excluded_params', []);
 
+            $params = ['input' => $request->except($excluded) ?: null];
+
+            if (!is_null($errors)) {
+                $params['errors'] = $errors;
+            }
+
             SecurityLog::create([
-                'user_id'       => $request->user()?->id,
+                'user_id'       => $request->user()?->getAuthIdentifier(),
                 'route_name'    => $request->route()?->getName(),
                 'method'        => $request->method(),
                 'url'           => $request->fullUrl(),
-                'params'        => $request->except($excluded) ?: null,
+                'params'        => $params,
                 'ip'            => $request->ip(),
                 'user_agent'    => $request->userAgent(),
                 'referer'       => $request->headers->get('referer'),
                 'response_code' => $responseCode,
             ]);
         } catch (Throwable $t) {
-            logger()->info($t->getMessage());
+            logger()->warning('[laravel-watchdog]: failed to log security event: '.$t->getMessage());
         }
     }
 }

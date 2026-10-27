@@ -10,9 +10,13 @@ return new class extends Migration
     {
         Schema::create('watchdog_sent_emails', function (Blueprint $table) {
             $table->id();
-            $table->string('to')->nullable();
-            $table->string('subject')->nullable();
+            $table->string('from')->nullable();
+            $table->json('recipients')->nullable();
+            $table->text('subject')->nullable();
             $table->longText('html')->nullable();
+            $table->longText('text')->nullable();
+            $table->json('attachments')->nullable();
+            $table->json('headers')->nullable();
             $table->timestamps();
 
             $table->index('created_at');

@@ -37,14 +37,14 @@ class LogStats
                 'url'           => $request->fullUrl(),
                 'params'        => $params ?: null,
                 'ip'            => $request->ip(),
-                'session_id'    => session()->getId(),
+                'session_id'    => $request->hasSession() ? $request->session()->getId() : null,
                 'user_agent'    => $request->userAgent(),
                 'referer'       => $request->headers->get('referer'),
                 'response_code' => $response->getStatusCode(),
                 'duration_ms'   => (int) ((microtime(true) - $start) * 1000),
             ]);
         } catch (Throwable $t) {
-            logger()->info($t->getMessage());
+            logger()->warning('[laravel-watchdog] failed to log stats: '.$t->getMessage());
         }
 
         return $response;

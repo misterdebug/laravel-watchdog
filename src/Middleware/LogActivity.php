@@ -32,20 +32,20 @@ class LogActivity
             );
 
             ActivityLog::create([
-                'user_id'       => $request->user()->id,
+                'user_id'       => $request->user()->getAuthIdentifier(),
                 'route_name'    => $request->route()?->getName(),
                 'method'        => $request->method(),
                 'url'           => $request->fullUrl(),
                 'params'        => $params ?: null,
                 'ip'            => $request->ip(),
-                'session_id'    => session()->getId(),
+                'session_id'    => $request->hasSession() ? $request->session()->getId() : null,
                 'user_agent'    => $request->userAgent(),
                 'referer'       => $request->headers->get('referer'),
                 'response_code' => $response->getStatusCode(),
                 'duration_ms'   => (int) ((microtime(true) - $start) * 1000),
             ]);
         } catch (Throwable $t) {
-            logger()->info($t->getMessage());
+            logger()->warning('[laravel-watchdog] failed to log user activity: '.$t->getMessage());
         }
 
         return $response;
@@ -60,8 +60,8 @@ class LogActivity
         }
 
         $field = config('laravel-watchdog.admin_check.field', 'role');
-        $value = config('laravel-watchdog.admin_check.value', 'admin');
+        $values = (array) config('laravel-watchdog.admin_check.values', ['admin']);
 
-        return $user->{$field} === $value;
+        return in_array($user->{$field} ?? null, $values, true);
     }
 }
