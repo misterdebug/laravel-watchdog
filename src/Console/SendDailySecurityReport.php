@@ -38,7 +38,7 @@ class SendDailySecurityReport extends Command
             : 0;
 
         if ($count404 === 0 && $count422 === 0) {
-            $this->info('Aucune activité à signaler.');
+            $this->info('No activity to report.');
 
             return;
         }

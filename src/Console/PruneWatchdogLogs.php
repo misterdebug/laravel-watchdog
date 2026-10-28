@@ -15,7 +15,7 @@ class PruneWatchdogLogs extends Command
 
     protected $description = 'Prunes old Laravel Watchdog records';
 
-    public function handle(): int
+    public function handle(): void
     {
         $models = [
             StatsLog::class,
@@ -35,7 +35,5 @@ class PruneWatchdogLogs extends Command
         }
 
         $this->info(sprintf('%d Watchdog records deleted.', $total));
-
-        return self::SUCCESS;
     }
 }

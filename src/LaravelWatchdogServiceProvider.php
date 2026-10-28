@@ -12,11 +12,13 @@ use Illuminate\Support\ServiceProvider;
 use MrDebug\LaravelWatchdog\Console\AnalyzeSuspiciousLogins;
 use MrDebug\LaravelWatchdog\Console\PruneWatchdogLogs;
 use MrDebug\LaravelWatchdog\Console\SendDailySecurityReport;
+use MrDebug\LaravelWatchdog\Contracts\AdminChecker;
 use MrDebug\LaravelWatchdog\Listeners\LogLoginAttempt;
 use MrDebug\LaravelWatchdog\Listeners\LogSentEmail;
 use MrDebug\LaravelWatchdog\Middleware\LogActivity;
 use MrDebug\LaravelWatchdog\Middleware\LogStats;
 use MrDebug\LaravelWatchdog\Notifications\Channels\WatchdogDiscordChannel;
+use MrDebug\LaravelWatchdog\Support\ConfigValidator;
 
 class LaravelWatchdogServiceProvider extends ServiceProvider
 {
@@ -26,6 +28,12 @@ class LaravelWatchdogServiceProvider extends ServiceProvider
             __DIR__.'/../config/laravel-watchdog.php',
             'laravel-watchdog'
         );
+
+        ConfigValidator::validate();
+
+        $this->app->singleton(AdminChecker::class, function ($app) {
+            return $app->make(config('laravel-watchdog.admin_check.checker'));
+        });
     }
 
     public function boot(): void

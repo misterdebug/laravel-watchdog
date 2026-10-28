@@ -2,13 +2,10 @@
 
 namespace MrDebug\LaravelWatchdog\Notifications;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
 class DailySecurityReportNotification extends Notification
 {
-    use Queueable;
-
     public function __construct(
         private int $count404,
         private int $count422

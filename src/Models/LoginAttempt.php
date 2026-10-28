@@ -2,16 +2,21 @@
 
 namespace MrDebug\LaravelWatchdog\Models;
 
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Prunable;
 
 class LoginAttempt extends Model
 {
-    use Prunable;
+    use MassPrunable;
 
     protected $table = 'watchdog_login_attempts';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'email',
+        'ip',
+        'user_agent',
+        'success',
+    ];
 
     protected $casts = [
         'success' => 'boolean',

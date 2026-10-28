@@ -35,8 +35,9 @@ return [
 
     // Determines how to identify an admin user
     'admin_check' => [
+        'checker' => \MrDebug\LaravelWatchdog\Support\RoleAdminChecker::class,
         'field' => 'role',
-        'value' => ['admin', 'super-admin]',
+        'values' => ['admin', 'super-admin'],
     ],
 
     // Thresholds for suspicious activity detection (login_attempts)
@@ -54,7 +55,7 @@ return [
         ],
     ],
 
-    // Log retention in days, used by the Prunable models
+    // Log retention in days, used by the MassPrunable models
     'prune' => [
         'stats_logs' => 30,
         'activity_logs' => 90,

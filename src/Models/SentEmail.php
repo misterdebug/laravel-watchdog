@@ -2,16 +2,25 @@
 
 namespace MrDebug\LaravelWatchdog\Models;
 
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Prunable;
 
 class SentEmail extends Model
 {
-    use Prunable;
+    use MassPrunable;
 
     protected $table = 'watchdog_sent_emails';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'from',
+        'recipients',
+        'subject',
+        'html',
+        'text',
+        'attachments',
+        'headers',
+    ];
+
     protected $casts = [
         'recipients'  => 'array',
         'attachments' => 'array',

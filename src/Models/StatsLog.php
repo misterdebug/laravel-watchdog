@@ -2,16 +2,27 @@
 
 namespace MrDebug\LaravelWatchdog\Models;
 
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Prunable;
 
 class StatsLog extends Model
 {
-    use Prunable;
+    use MassPrunable;
 
     protected $table = 'watchdog_stats_logs';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'route_name',
+        'method',
+        'url',
+        'params',
+        'ip',
+        'session_id',
+        'user_agent',
+        'referer',
+        'response_code',
+        'duration_ms',
+    ];
 
     protected $casts = [
         'params' => 'array',

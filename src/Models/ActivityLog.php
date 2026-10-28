@@ -2,16 +2,28 @@
 
 namespace MrDebug\LaravelWatchdog\Models;
 
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Prunable;
 
 class ActivityLog extends Model
 {
-    use Prunable;
+    use MassPrunable;
 
     protected $table = 'watchdog_activity_logs';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'route_name',
+        'method',
+        'url',
+        'params',
+        'ip',
+        'session_id',
+        'user_agent',
+        'referer',
+        'response_code',
+        'duration_ms',
+    ];
 
     protected $casts = [
         'params' => 'array',

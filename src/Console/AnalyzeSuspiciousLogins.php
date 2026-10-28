@@ -41,7 +41,7 @@ class AnalyzeSuspiciousLogins extends Command
             ->get();
 
         if ($byEmail->isEmpty() && $byIp->isEmpty()) {
-            $this->info('Aucune activité suspecte détectée.');
+            $this->info('No suspicious activity detected.');
 
             return;
         }

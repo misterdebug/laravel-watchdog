@@ -4,12 +4,15 @@ namespace MrDebug\LaravelWatchdog\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use MrDebug\LaravelWatchdog\Contracts\AdminChecker;
 use MrDebug\LaravelWatchdog\Models\ActivityLog;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class LogActivity
 {
+    public function __construct(private AdminChecker $adminChecker) {}
+
     public function handle(Request $request, Closure $next): Response
     {
         $start = microtime(true);
@@ -19,7 +22,7 @@ class LogActivity
             return $response;
         }
 
-        if (is_null($request->user()) || $this->isAdmin($request)) {
+        if (is_null($request->user()) || $this->adminChecker->isAdmin($request->user())) {
             return $response;
         }
 
@@ -49,19 +52,5 @@ class LogActivity
         }
 
         return $response;
-    }
-
-    protected function isAdmin(Request $request): bool
-    {
-        $user = $request->user();
-
-        if (! $user) {
-            return false;
-        }
-
-        $field = config('laravel-watchdog.admin_check.field', 'role');
-        $values = (array) config('laravel-watchdog.admin_check.values', ['admin']);
-
-        return in_array($user->{$field} ?? null, $values, true);
     }
 }

@@ -6,12 +6,16 @@ use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
+use MrDebug\LaravelWatchdog\Contracts\AdminChecker;
 use MrDebug\LaravelWatchdog\Models\LoginAttempt;
 use Throwable;
 
 class LogLoginAttempt
 {
-    public function __construct(private Request $request) {}
+    public function __construct(
+        private Request $request,
+        private AdminChecker $adminChecker,
+    ) {}
 
     public function handle($event): void
     {
@@ -22,7 +26,7 @@ class LogLoginAttempt
         $ip = $this->request->ip();
 
         if ($event instanceof Login) {
-            if ($this->isAdmin($event->user)) {
+            if ($this->adminChecker->isAdmin($event->user)) {
                 $this->notifyAdminLogin($ip, $event->user->email);
 
                 return;
@@ -50,8 +54,8 @@ class LogLoginAttempt
                 'success'    => $success,
             ]);
         } catch (Throwable $t) {
-            // On ne remonte jamais une erreur interne du package sur le canal
-            // Discord des vraies erreurs applicatives (500), on log seulement.
+            // Never surface an internal package error on the Discord channel used
+            // for real application errors (500), only log it.
             logger()->error('[laravel-watchdog] failed to record login attempt: '.$t->getMessage());
         }
     }
@@ -66,13 +70,5 @@ class LogLoginAttempt
         } catch (Throwable $t) {
             logger()->error('[laravel-watchdog] failed to send login notification: '.$t->getMessage());
         }
-    }
-
-    protected function isAdmin($user): bool
-    {
-        $field = config('laravel-watchdog.admin_check.field', 'role');
-        $value = config('laravel-watchdog.admin_check.value', 'admin');
-
-        return $user->{$field} === $value;
     }
 }
