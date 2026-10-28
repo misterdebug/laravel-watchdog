@@ -23,7 +23,7 @@ Admin logins and 500 errors are alerted on Discord but not written to the databa
 
 ## Installation
 
-Requires PHP 8.2+, Laravel 11 or 12, and a database with JSON column support.
+Requires PHP 8.2+, Laravel 11+, and a database with JSON column support.
 
 ```bash
 composer require mrdebug/laravel-watchdog
