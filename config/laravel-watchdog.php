@@ -69,10 +69,4 @@ return [
 
     // Fields excluded from security logs (watchdog_security_logs: 404 / 422). Empty by default, on purpose.
     'security_excluded_params' => [],
-
-    'sent_emails' => [
-        'mode' => 'all',
-        'excluded_mailables' => [],
-    ],
-
 ];

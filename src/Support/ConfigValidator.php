@@ -200,14 +200,6 @@ final class ConfigValidator
         if (! is_array($sentEmails)) {
             self::fail('sent_emails', 'must be an array.');
         }
-
-        if (array_key_exists('mode', $sentEmails) && ! is_string($sentEmails['mode'])) {
-            self::fail('sent_emails.mode', 'must be a string.');
-        }
-
-        if (array_key_exists('excluded_mailables', $sentEmails)) {
-            self::assertStringArray($sentEmails['excluded_mailables'], 'sent_emails.excluded_mailables');
-        }
     }
 
     private static function assertNotificationClass(mixed $class, string $key): void
