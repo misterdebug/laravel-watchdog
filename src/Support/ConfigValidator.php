@@ -34,8 +34,6 @@ final class ConfigValidator
             $config['security_excluded_params'] ?? null,
             'security_excluded_params'
         );
-
-        self::validateSentEmails($config['sent_emails'] ?? null);
     }
 
     private static function validateFeatures(mixed $features): void
@@ -192,13 +190,6 @@ final class ConfigValidator
             'sent_emails',
         ] as $key) {
             self::assertPositiveInt($prune[$key] ?? null, "prune.$key");
-        }
-    }
-
-    private static function validateSentEmails(mixed $sentEmails): void
-    {
-        if (! is_array($sentEmails)) {
-            self::fail('sent_emails', 'must be an array.');
         }
     }
 
