@@ -16,11 +16,20 @@
             "MrDebug\\LaravelWatchdog\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "MrDebug\\LaravelWatchdog\\Tests\\": "tests/"
+        }
+    },
     "extra": {
         "laravel": {
             "providers": [
                 "MrDebug\\LaravelWatchdog\\LaravelWatchdogServiceProvider"
             ]
         }
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.0",
+        "phpunit/phpunit": "^11.5"
     }
 }
