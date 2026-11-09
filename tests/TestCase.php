@@ -8,6 +8,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler as ExceptionHandlerContract;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use MrDebug\LaravelWatchdog\Contracts\AdminChecker;
@@ -121,6 +122,14 @@ abstract class TestCase extends OrchestraTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // A fixed prefix keeps the compiled Blade component names stable
+        // across test classes, so cached views never reference a namespace
+        // that was registered by another test.
+        Blade::anonymousComponentPath(
+            __DIR__.'/Fixtures/views/components',
+            'watchdog-test-components'
+        );
 
         Http::fake();
 

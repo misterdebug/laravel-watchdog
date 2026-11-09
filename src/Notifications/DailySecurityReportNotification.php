@@ -18,12 +18,11 @@ class DailySecurityReportNotification extends Notification
 
     public function toDiscord(): array
     {
-        $lines = [
-            '📊 **Daily security report**',
-            "\n• 404 : {$this->count404}",
-            "• 422 : {$this->count422}",
+        return [
+            'content' => __('laravel-watchdog::notifications.daily_security_report.content', [
+                'count404' => $this->count404,
+                'count422' => $this->count422,
+            ]),
         ];
-
-        return ['content' => implode("\n", $lines)];
     }
 }

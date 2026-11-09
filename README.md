@@ -137,6 +137,25 @@ php artisan vendor:publish --tag=laravel-watchdog-views
 
 Published views live in `resources/views/vendor/laravel-watchdog` and override the package views.
 
+### Localization
+
+Watchdog ships English and French translations for the backoffice, Artisan commands, Discord notifications and configuration validation messages. The package follows the host application locale (`app()->getLocale()`): English is used by default, and French is used automatically when the application locale is `fr`. No package-specific locale setting is required.
+
+Publish the language files if you want to customise them:
+
+```bash
+php artisan vendor:publish --tag=laravel-watchdog-lang
+```
+
+They are published to `lang/vendor/laravel-watchdog/{en,fr}` and override the package files. If you update the package, republish the language files and, when you already published them, the views with `--force`:
+
+```bash
+php artisan vendor:publish --tag=laravel-watchdog-lang --force
+php artisan vendor:publish --tag=laravel-watchdog-views --force
+```
+
+Dates follow the active locale: `Y-m-d H:i:s` in English and `d/m/Y H:i:s` in French. Route names, URLs, command names and class names never change.
+
 ### Pages
 
 The default URLs and route names are:

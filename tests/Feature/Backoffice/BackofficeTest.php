@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace MrDebug\LaravelWatchdog\Tests\Feature\Backoffice;
 
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use MrDebug\LaravelWatchdog\Models\ActivityLog;
@@ -33,8 +32,6 @@ final class BackofficeTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        Blade::anonymousComponentPath(__DIR__.'/../../Fixtures/views/components');
 
         $this->logDirectory = storage_path('framework/testing/watchdog-backoffice-'.Str::random(8));
         File::ensureDirectoryExists($this->logDirectory);

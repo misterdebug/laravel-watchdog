@@ -65,11 +65,11 @@ class ExceptionHandler
                     Notification::route(
                         'watchdog-discord',
                         config('laravel-watchdog.discord.webhooks.errors500')
-                    )->notify(new $notificationClass(
+                    )->notify((new $notificationClass(
                         $e->getMessage(),
                         $e->getFile(),
                         $e->getLine(),
-                    ));
+                    ))->locale(app()->getLocale()));
                 } catch (Throwable) {
 
                 }

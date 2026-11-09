@@ -13,7 +13,10 @@ class PruneWatchdogLogs extends Command
 {
     protected $signature = 'watchdog:prune';
 
-    protected $description = 'Prunes old Laravel Watchdog records';
+    public function getDescription(): string
+    {
+        return __('laravel-watchdog::commands.prune.description');
+    }
 
     public function handle(): void
     {
@@ -31,9 +34,12 @@ class PruneWatchdogLogs extends Command
             $deleted = (new $model)->pruneAll();
             $total += $deleted;
 
-            $this->info(sprintf('%s: %d deleted.', class_basename($model), $deleted));
+            $this->info(trans_choice('laravel-watchdog::commands.prune.model_deleted', $deleted, [
+                'model' => class_basename($model),
+                'count' => $deleted,
+            ]));
         }
 
-        $this->info(sprintf('%d Watchdog records deleted.', $total));
+        $this->info(trans_choice('laravel-watchdog::commands.prune.total_deleted', $total, ['count' => $total]));
     }
 }

@@ -10,7 +10,10 @@ class SendDailySecurityReport extends Command
 {
     protected $signature = 'watchdog:daily-security-report';
 
-    protected $description = 'Sends a daily report of 404 and 422 counts to Discord';
+    public function getDescription(): string
+    {
+        return __('laravel-watchdog::commands.daily_security_report.description');
+    }
 
     public function handle(): void
     {
@@ -18,7 +21,7 @@ class SendDailySecurityReport extends Command
         $security422Enabled = (bool) config('laravel-watchdog.features.security_422', true);
 
         if (! $security404Enabled && ! $security422Enabled) {
-            $this->info('Security monitoring is disabled.');
+            $this->info(__('laravel-watchdog::commands.daily_security_report.disabled'));
 
             return;
         }
@@ -38,7 +41,7 @@ class SendDailySecurityReport extends Command
             : 0;
 
         if ($count404 === 0 && $count422 === 0) {
-            $this->info('No activity to report.');
+            $this->info(__('laravel-watchdog::commands.daily_security_report.no_activity'));
 
             return;
         }
@@ -46,8 +49,8 @@ class SendDailySecurityReport extends Command
         $notificationClass = config('laravel-watchdog.notifications.daily_security_report');
 
         Notification::route('watchdog-discord', config('laravel-watchdog.discord.webhooks.security-logs'))
-            ->notify(new $notificationClass($count404, $count422));
+            ->notify((new $notificationClass($count404, $count422))->locale(app()->getLocale()));
 
-        $this->info('Report sent to Discord.');
+        $this->info(__('laravel-watchdog::commands.daily_security_report.sent'));
     }
 }

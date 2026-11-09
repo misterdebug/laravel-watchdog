@@ -14,7 +14,7 @@ final class ConfigValidator
         $config = config('laravel-watchdog');
 
         if (! is_array($config)) {
-            throw new InvalidArgumentException('laravel-watchdog: configuration must be an array.');
+            throw new InvalidArgumentException(__('laravel-watchdog::validation.configuration'));
         }
 
         self::validateFeatures($config['features'] ?? null);
@@ -40,7 +40,7 @@ final class ConfigValidator
     private static function validateFeatures(mixed $features): void
     {
         if (! is_array($features)) {
-            self::fail('features', 'must be an array.');
+            self::fail('features', 'must_be_array');
         }
 
         foreach ([
@@ -53,7 +53,7 @@ final class ConfigValidator
             'sent_emails',
         ] as $key) {
             if (! array_key_exists($key, $features) || ! is_bool($features[$key])) {
-                self::fail("features.$key", 'must be a boolean.');
+                self::fail("features.$key", 'must_be_boolean');
             }
         }
     }
@@ -61,15 +61,15 @@ final class ConfigValidator
     private static function validateDiscord(mixed $discord): void
     {
         if (! is_array($discord)) {
-            self::fail('discord', 'must be an array.');
+            self::fail('discord', 'must_be_array');
         }
 
         if (! array_key_exists('only_production', $discord) || ! is_bool($discord['only_production'])) {
-            self::fail('discord.only_production', 'must be a boolean.');
+            self::fail('discord.only_production', 'must_be_boolean');
         }
 
         if (! array_key_exists('webhooks', $discord) || ! is_array($discord['webhooks'])) {
-            self::fail('discord.webhooks', 'must be an array.');
+            self::fail('discord.webhooks', 'must_be_array');
         }
 
         foreach ($discord['webhooks'] as $key => $url) {
@@ -82,7 +82,7 @@ final class ConfigValidator
                 || filter_var($url, FILTER_VALIDATE_URL) === false
                 || parse_url($url, PHP_URL_SCHEME) !== 'https'
             ) {
-                self::fail("discord.webhooks.$key", 'must be null, an empty string, or a valid https URL.');
+                self::fail("discord.webhooks.$key", 'must_be_https_url');
             }
         }
     }
@@ -90,7 +90,7 @@ final class ConfigValidator
     private static function validateNotifications(mixed $notifications): void
     {
         if (! is_array($notifications)) {
-            self::fail('notifications', 'must be an array.');
+            self::fail('notifications', 'must_be_array');
         }
 
         foreach ([
@@ -106,7 +106,7 @@ final class ConfigValidator
     private static function validateAdminCheck(mixed $adminCheck): void
     {
         if (! is_array($adminCheck)) {
-            self::fail('admin_check', 'must be an array.');
+            self::fail('admin_check', 'must_be_array');
         }
 
         $checker = $adminCheck['checker'] ?? null;
@@ -116,29 +116,29 @@ final class ConfigValidator
             || ! class_exists($checker)
             || ! is_subclass_of($checker, AdminChecker::class)
         ) {
-            self::fail('admin_check.checker', 'must be a class implementing '.AdminChecker::class.'.');
+            self::fail('admin_check.checker', 'must_implement', ['class' => AdminChecker::class]);
         }
 
         if (! (new ReflectionClass($checker))->isInstantiable()) {
-            self::fail('admin_check.checker', 'must be an instantiable class.');
+            self::fail('admin_check.checker', 'must_be_instantiable');
         }
 
         if (is_a($checker, RoleAdminChecker::class, true)) {
             $field = $adminCheck['field'] ?? null;
 
             if (! is_string($field) || $field === '') {
-                self::fail('admin_check.field', 'must be a non-empty string.');
+                self::fail('admin_check.field', 'must_be_non_empty_string');
             }
 
             $values = $adminCheck['values'] ?? null;
 
             if (! is_array($values) || $values === []) {
-                self::fail('admin_check.values', 'must be a non-empty array.');
+                self::fail('admin_check.values', 'must_be_non_empty_array');
             }
 
             foreach ($values as $value) {
                 if (! is_scalar($value)) {
-                    self::fail('admin_check.values', 'must only contain scalar values.');
+                    self::fail('admin_check.values', 'must_contain_scalars');
                 }
             }
         }
@@ -147,7 +147,7 @@ final class ConfigValidator
     private static function validateSuspiciousActivity(mixed $suspiciousActivity): void
     {
         if (! is_array($suspiciousActivity)) {
-            self::fail('suspicious_activity', 'must be an array.');
+            self::fail('suspicious_activity', 'must_be_array');
         }
 
         foreach ([
@@ -166,7 +166,7 @@ final class ConfigValidator
             || ! isset($rateLimit['error500'])
             || ! is_array($rateLimit['error500'])
         ) {
-            self::fail('rate_limit.error500', 'must be an array.');
+            self::fail('rate_limit.error500', 'must_be_array');
         }
 
         foreach ([
@@ -180,7 +180,7 @@ final class ConfigValidator
     private static function validatePrune(mixed $prune): void
     {
         if (! is_array($prune)) {
-            self::fail('prune', 'must be an array.');
+            self::fail('prune', 'must_be_array');
         }
 
         foreach ([
@@ -197,19 +197,19 @@ final class ConfigValidator
     private static function validateBackoffice(mixed $backoffice): void
     {
         if (! is_array($backoffice)) {
-            self::fail('backoffice', 'must be an array.');
+            self::fail('backoffice', 'must_be_array');
         }
 
         self::assertPositiveInt($backoffice['per_page'] ?? null, 'backoffice.per_page');
 
         if (! isset($backoffice['laravel_logs']) || ! is_array($backoffice['laravel_logs'])) {
-            self::fail('backoffice.laravel_logs', 'must be an array.');
+            self::fail('backoffice.laravel_logs', 'must_be_array');
         }
 
         $directory = $backoffice['laravel_logs']['directory'] ?? null;
 
         if (! is_string($directory) || $directory === '') {
-            self::fail('backoffice.laravel_logs.directory', 'must be a non-empty string.');
+            self::fail('backoffice.laravel_logs.directory', 'must_be_non_empty_string');
         }
 
         self::assertPositiveInt(
@@ -226,23 +226,23 @@ final class ConfigValidator
             || ! is_subclass_of($class, Notification::class)
             || ! method_exists($class, 'toDiscord')
         ) {
-            self::fail($key, 'must be a class extending '.Notification::class.' and defining toDiscord().');
+            self::fail($key, 'must_extend_notification', ['class' => Notification::class]);
         }
 
         if (! (new ReflectionClass($class))->isInstantiable()) {
-            self::fail($key, 'must be an instantiable class.');
+            self::fail($key, 'must_be_instantiable');
         }
     }
 
     private static function assertStringArray(mixed $value, string $key): void
     {
         if (! is_array($value)) {
-            self::fail($key, 'must be an array.');
+            self::fail($key, 'must_be_array');
         }
 
         foreach ($value as $item) {
             if (! is_string($item)) {
-                self::fail($key, 'must only contain strings.');
+                self::fail($key, 'must_contain_strings');
             }
         }
     }
@@ -250,12 +250,15 @@ final class ConfigValidator
     private static function assertPositiveInt(mixed $value, string $key): void
     {
         if (! is_int($value) || $value < 1) {
-            self::fail($key, 'must be a positive integer.');
+            self::fail($key, 'must_be_positive_integer');
         }
     }
 
-    private static function fail(string $key, string $message): never
+    private static function fail(string $key, string $messageKey, array $replace = []): never
     {
-        throw new InvalidArgumentException("laravel-watchdog: [$key] $message");
+        throw new InvalidArgumentException(__('laravel-watchdog::validation.message', [
+            'key' => $key,
+            'message' => __('laravel-watchdog::validation.'.$messageKey, $replace),
+        ]));
     }
 }

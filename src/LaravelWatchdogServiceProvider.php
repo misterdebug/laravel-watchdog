@@ -29,6 +29,10 @@ class LaravelWatchdogServiceProvider extends ServiceProvider
             'laravel-watchdog'
         );
 
+        // ConfigValidator validates in register(), so translations must be
+        // available before it runs.
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'laravel-watchdog');
+
         ConfigValidator::validate();
 
         $this->app->singleton(AdminChecker::class, function ($app) {
@@ -53,6 +57,10 @@ class LaravelWatchdogServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../resources/views' => resource_path('views/vendor/laravel-watchdog'),
             ], 'laravel-watchdog-views');
+
+            $this->publishes([
+                __DIR__.'/../lang' => $this->app->langPath('vendor/laravel-watchdog'),
+            ], 'laravel-watchdog-lang');
 
             $this->commands([
                 AnalyzeSuspiciousLogins::class,

@@ -10,12 +10,15 @@ class AnalyzeSuspiciousLogins extends Command
 {
     protected $signature = 'watchdog:analyze-logins';
 
-    protected $description = 'Analyzes suspicious login attempts and alerts on Discord';
+    public function getDescription(): string
+    {
+        return __('laravel-watchdog::commands.analyze.description');
+    }
 
     public function handle(): void
     {
         if (! config('laravel-watchdog.features.login_attempts')) {
-            $this->info('Login attempt monitoring is disabled.');
+            $this->info(__('laravel-watchdog::commands.analyze.disabled'));
 
             return;
         }
@@ -41,7 +44,7 @@ class AnalyzeSuspiciousLogins extends Command
             ->get();
 
         if ($byEmail->isEmpty() && $byIp->isEmpty()) {
-            $this->info('No suspicious activity detected.');
+            $this->info(__('laravel-watchdog::commands.analyze.no_activity'));
 
             return;
         }
@@ -49,8 +52,8 @@ class AnalyzeSuspiciousLogins extends Command
         $notificationClass = config('laravel-watchdog.notifications.suspicious_activity');
 
         Notification::route('watchdog-discord', config('laravel-watchdog.discord.webhooks.logins'))
-            ->notify(new $notificationClass($byEmail, $byIp));
+            ->notify((new $notificationClass($byEmail, $byIp))->locale(app()->getLocale()));
 
-        $this->info('Alert sent to Discord.');
+        $this->info(__('laravel-watchdog::commands.analyze.sent'));
     }
 }

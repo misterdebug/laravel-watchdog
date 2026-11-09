@@ -28,13 +28,12 @@ class Error500Notification extends Notification implements ShouldQueue
     public function toDiscord(): array
     {
         return [
-            'content' => sprintf(
-                "🔴 **500 Error**\n`%s`\n%s:%d\n%s",
-                $this->message,
-                $this->file,
-                $this->line,
-                $this->url
-            ),
+            'content' => __('laravel-watchdog::notifications.error500.content', [
+                'message' => $this->message,
+                'file' => $this->file,
+                'line' => $this->line,
+                'url' => $this->url,
+            ]),
         ];
     }
 }

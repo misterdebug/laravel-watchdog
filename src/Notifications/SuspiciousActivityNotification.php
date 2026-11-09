@@ -19,22 +19,34 @@ class SuspiciousActivityNotification extends Notification
 
     public function toDiscord(): array
     {
-        $lines = ['🚨 **Suspicious activity detected**'];
+        $lines = [__('laravel-watchdog::notifications.suspicious_activity.header')];
 
         if ($this->byEmail->isNotEmpty()) {
-            $lines[] = "\n**By email :**";
+            $lines[] = "\n".__('laravel-watchdog::notifications.suspicious_activity.by_email');
             foreach ($this->byEmail as $row) {
-                $lines[] = "• {$row->email} : {$row->total} failures";
+                $lines[] = $this->line($row->email, (int) $row->total);
             }
         }
 
         if ($this->byIp->isNotEmpty()) {
-            $lines[] = "\n**By IP :**";
+            $lines[] = "\n".__('laravel-watchdog::notifications.suspicious_activity.by_ip');
             foreach ($this->byIp as $row) {
-                $lines[] = "• {$row->ip} : {$row->total} failures";
+                $lines[] = $this->line($row->ip, (int) $row->total);
             }
         }
 
         return ['content' => implode("\n", $lines)];
+    }
+
+    private function line(string $identifier, int $count): string
+    {
+        return __('laravel-watchdog::notifications.suspicious_activity.line', [
+            'identifier' => $identifier,
+            'failures' => trans_choice(
+                'laravel-watchdog::notifications.suspicious_activity.failure',
+                $count,
+                ['count' => $count]
+            ),
+        ]);
     }
 }

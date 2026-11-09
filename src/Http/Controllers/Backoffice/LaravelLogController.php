@@ -39,15 +39,18 @@ class LaravelLogController
         $data = $request->validate([
             'file' => ['required', 'string'],
             'entry' => ['required', 'string'],
+        ], [
+            'file.required' => __('laravel-watchdog::backoffice.validation.file_required'),
+            'entry.required' => __('laravel-watchdog::backoffice.validation.entry_required'),
         ]);
 
         $deleted = $parser->deleteEntry($this->directory(), $data['file'], $data['entry']);
 
         if (! $deleted) {
-            return back()->with('error', 'Unable to delete this entry. Check that the log file exists and is writable.');
+            return back()->with('error', __('laravel-watchdog::backoffice.messages.delete_failed'));
         }
 
-        return back()->with('status', 'Entry deleted.');
+        return back()->with('status', __('laravel-watchdog::backoffice.messages.entry_deleted'));
     }
 
     /**

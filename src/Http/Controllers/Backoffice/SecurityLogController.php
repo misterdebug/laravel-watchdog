@@ -23,7 +23,7 @@ class SecurityLogController
     {
         SecurityLog::findOrFail($id)->delete();
 
-        return back()->with('status', 'Row deleted.');
+        return back()->with('status', __('laravel-watchdog::backoffice.messages.row_deleted'));
     }
 
     protected function perPage(): int

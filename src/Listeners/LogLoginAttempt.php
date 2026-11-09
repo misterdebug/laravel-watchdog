@@ -66,7 +66,7 @@ class LogLoginAttempt
             $notificationClass = config('laravel-watchdog.notifications.login');
 
             Notification::route('watchdog-discord', config('laravel-watchdog.discord.webhooks.logins'))
-                ->notify(new $notificationClass($ip, $email));
+                ->notify((new $notificationClass($ip, $email))->locale(app()->getLocale()));
         } catch (Throwable $t) {
             logger()->error('[laravel-watchdog] failed to send login notification: '.$t->getMessage());
         }

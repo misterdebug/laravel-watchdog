@@ -1,11 +1,11 @@
 @php
     $tabs = [
-        'watchdog.stats-logs.index' => 'Stats',
-        'watchdog.activity-logs.index' => 'Activity',
-        'watchdog.security-logs.index' => 'Security',
-        'watchdog.login-attempts.index' => 'Login attempts',
-        'watchdog.sent-emails.index' => 'Sent emails',
-        'watchdog.laravel-logs.index' => 'Laravel logs',
+        'watchdog.stats-logs.index' => __('laravel-watchdog::backoffice.nav.stats'),
+        'watchdog.activity-logs.index' => __('laravel-watchdog::backoffice.nav.activity'),
+        'watchdog.security-logs.index' => __('laravel-watchdog::backoffice.nav.security'),
+        'watchdog.login-attempts.index' => __('laravel-watchdog::backoffice.nav.login_attempts'),
+        'watchdog.sent-emails.index' => __('laravel-watchdog::backoffice.nav.sent_emails'),
+        'watchdog.laravel-logs.index' => __('laravel-watchdog::backoffice.nav.laravel_logs'),
     ];
 
     $availableTabs = array_filter(

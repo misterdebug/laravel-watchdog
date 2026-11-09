@@ -23,11 +23,10 @@ class LoginNotification extends Notification implements ShouldQueue
     public function toDiscord(): array
     {
         return [
-            'content' => sprintf(
-                "🔑 **New admin login**\nEmail: %s\nIP: %s",
-                $this->email,
-                $this->ip ?? 'unknown'
-            ),
+            'content' => __('laravel-watchdog::notifications.login.content', [
+                'email' => $this->email,
+                'ip' => $this->ip ?? __('laravel-watchdog::notifications.login.unknown_ip'),
+            ]),
         ];
     }
 }
