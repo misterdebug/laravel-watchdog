@@ -24,6 +24,7 @@ final class ConfigValidator
         self::validateSuspiciousActivity($config['suspicious_activity'] ?? null);
         self::validateRateLimit($config['rate_limit'] ?? null);
         self::validatePrune($config['prune'] ?? null);
+        self::validateBackoffice($config['backoffice'] ?? null);
 
         self::assertStringArray(
             $config['traffic_excluded_params'] ?? null,
@@ -191,6 +192,30 @@ final class ConfigValidator
         ] as $key) {
             self::assertPositiveInt($prune[$key] ?? null, "prune.$key");
         }
+    }
+
+    private static function validateBackoffice(mixed $backoffice): void
+    {
+        if (! is_array($backoffice)) {
+            self::fail('backoffice', 'must be an array.');
+        }
+
+        self::assertPositiveInt($backoffice['per_page'] ?? null, 'backoffice.per_page');
+
+        if (! isset($backoffice['laravel_logs']) || ! is_array($backoffice['laravel_logs'])) {
+            self::fail('backoffice.laravel_logs', 'must be an array.');
+        }
+
+        $directory = $backoffice['laravel_logs']['directory'] ?? null;
+
+        if (! is_string($directory) || $directory === '') {
+            self::fail('backoffice.laravel_logs.directory', 'must be a non-empty string.');
+        }
+
+        self::assertPositiveInt(
+            $backoffice['laravel_logs']['per_page'] ?? null,
+            'backoffice.laravel_logs.per_page'
+        );
     }
 
     private static function assertNotificationClass(mixed $class, string $key): void

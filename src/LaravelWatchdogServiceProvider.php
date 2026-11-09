@@ -39,11 +39,20 @@ class LaravelWatchdogServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'laravel-watchdog');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/laravel-watchdog.php' => config_path('laravel-watchdog.php'),
             ], 'laravel-watchdog-config');
+
+            $this->publishes([
+                __DIR__.'/../routes/watchdog-backoffice.php' => base_path('routes/watchdog-backoffice.php'),
+            ], 'laravel-watchdog-routes');
+
+            $this->publishes([
+                __DIR__.'/../resources/views' => resource_path('views/vendor/laravel-watchdog'),
+            ], 'laravel-watchdog-views');
 
             $this->commands([
                 AnalyzeSuspiciousLogins::class,

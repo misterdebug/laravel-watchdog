@@ -266,4 +266,24 @@ final class ConfigValidatorTest extends TestCase
 
         ConfigValidator::validate();
     }
+
+    public function test_backoffice_per_page_must_be_a_positive_integer(): void
+    {
+        config()->set('laravel-watchdog.backoffice.per_page', 0);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('[backoffice.per_page] must be a positive integer.');
+
+        ConfigValidator::validate();
+    }
+
+    public function test_backoffice_log_directory_must_be_a_non_empty_string(): void
+    {
+        config()->set('laravel-watchdog.backoffice.laravel_logs.directory', '');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('[backoffice.laravel_logs.directory] must be a non-empty string.');
+
+        ConfigValidator::validate();
+    }
 }

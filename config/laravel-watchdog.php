@@ -64,6 +64,16 @@ return [
         'sent_emails' => 30,
     ],
 
+    // Backoffice pagination and Laravel log file location.
+    // The routes themselves are declared in the published routes/watchdog-backoffice.php file.
+    'backoffice' => [
+        'per_page' => 50,
+        'laravel_logs' => [
+            'directory' => storage_path('logs'),
+            'per_page' => 20,
+        ],
+    ],
+
     // Fields excluded from traffic logs (watchdog_stats_logs / watchdog_activity_logs)
     'traffic_excluded_params' => ['password', 'password_confirmation', '_token'],
 

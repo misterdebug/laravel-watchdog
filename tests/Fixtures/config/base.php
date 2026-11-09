@@ -70,6 +70,14 @@ return [
         'sent_emails' => 30,
     ],
 
+    'backoffice' => [
+        'per_page' => 50,
+        'laravel_logs' => [
+            'directory' => storage_path('logs'),
+            'per_page' => 20,
+        ],
+    ],
+
     'traffic_excluded_params' => ['password', 'password_confirmation', '_token'],
 
     'security_excluded_params' => [],

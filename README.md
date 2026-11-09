@@ -21,6 +21,8 @@ All tables are prefixed with `watchdog_`.
 
 Admin logins and 500 errors are alerted on Discord but not written to the database.
 
+An optional backoffice can display these tables and the Laravel log files; see [Backoffice](#backoffice).
+
 ## Installation
 
 Requires PHP 8.2+, Laravel 11+, and a database with JSON column support.
@@ -32,6 +34,15 @@ php artisan migrate
 ```
 
 In production, use `php artisan migrate --force`. The service provider is discovered automatically.
+
+Optionally publish the backoffice routes and views:
+
+```bash
+php artisan vendor:publish --tag=laravel-watchdog-routes
+php artisan vendor:publish --tag=laravel-watchdog-views
+```
+
+The routes are not registered automatically. See [Backoffice](#backoffice).
 
 ### Environment
 
@@ -85,6 +96,83 @@ $schedule->command('watchdog:prune')->daily();                 // bulk-deletes r
 ```
 
 `LoginNotification` and `Error500Notification` are queued, so a queue worker must be running unless `QUEUE_CONNECTION=sync`. The 500 rate limiter uses Laravel's cache, so use a persistent store in production.
+
+## Backoffice
+
+The package ships a small backoffice for the `watchdog_*` tables and the Laravel log files. It uses classic Blade. The views extend Laravel Breeze's `<x-app-layout>`, so the host application must provide that component (Breeze or an equivalent `app-layout` component) and Tailwind CSS.
+
+The package does not register the backoffice routes automatically and does not provide any authorization middleware.
+
+### Install the routes
+
+```bash
+php artisan vendor:publish --tag=laravel-watchdog-routes
+```
+
+Then include the published file from `routes/web.php`:
+
+```php
+require base_path('routes/watchdog-backoffice.php');
+```
+
+The file inherits the `web` middleware group from `web.php`, so sessions and CSRF protection are available. It declares one index route and one delete route per page. Remove or comment out the pages you do not want, and change the prefix, route names or middleware group as needed. If you rename the route names, publish the views and update `backoffice/partials/nav.blade.php` so the navigation links keep working.
+
+**You must secure these routes yourself.** The package does not check whether the authenticated user is an administrator. Add your own middleware, policy or gate. For example, wrap the include in your own group in `routes/web.php`:
+
+```php
+Route::middleware(['admin'])->group(function () {
+    require base_path('routes/watchdog-backoffice.php');
+});
+```
+
+You can also edit the middleware array inside the published route file directly.
+
+### Views
+
+The default views use `<x-app-layout>` from Laravel Breeze. To customise them:
+
+```bash
+php artisan vendor:publish --tag=laravel-watchdog-views
+```
+
+Published views live in `resources/views/vendor/laravel-watchdog` and override the package views.
+
+### Pages
+
+The default URLs and route names are:
+
+| Page | Default URL | Route names |
+|---|---|---|
+| Stats logs | `/watchdog/stats-logs` | `watchdog.stats-logs.index`, `watchdog.stats-logs.destroy` |
+| Activity logs | `/watchdog/activity-logs` | `watchdog.activity-logs.index`, `watchdog.activity-logs.destroy` |
+| Security logs | `/watchdog/security-logs` | `watchdog.security-logs.index`, `watchdog.security-logs.destroy` |
+| Login attempts | `/watchdog/login-attempts` | `watchdog.login-attempts.index`, `watchdog.login-attempts.destroy` |
+| Sent emails | `/watchdog/sent-emails` | `watchdog.sent-emails.index`, `watchdog.sent-emails.destroy` |
+| Laravel logs | `/watchdog/laravel-logs` | `watchdog.laravel-logs.index`, `watchdog.laravel-logs.destroy` |
+
+### Laravel logs
+
+The log screen lists every `laravel*.log` file in the configured directory (`storage/logs` by default). It parses complete entries, so a stack trace is never split, and paginates them. Deleting an entry rewrites the file under a lock; PHP must be able to write to the log file.
+
+### Email preview
+
+Email HTML is displayed in a sandboxed iframe. Scripts and external resources are blocked, and images are disabled by default. The "Show images" button re-renders the preview with images allowed.
+
+### Configuration
+
+```php
+'backoffice' => [
+    'per_page' => 50,
+    'laravel_logs' => [
+        'directory' => storage_path('logs'),
+        'per_page' => 20,
+    ],
+],
+```
+
+`per_page` applies to the `watchdog_*` tables. `laravel_logs.per_page` applies to parsed log entries.
+
+The backoffice exposes sensitive data (IP addresses, URLs, emails, log contents and full email bodies). Secure access and adjust retention/privacy settings accordingly.
 
 ## Configuration
 
@@ -153,6 +241,16 @@ return [
         'security_logs' => 90,
         'login_attempts' => 90,
         'sent_emails' => 30,
+    ],
+
+    // Backoffice pagination and Laravel log file location.
+    // The routes are declared in the published routes/watchdog-backoffice.php file.
+    'backoffice' => [
+        'per_page' => 50,
+        'laravel_logs' => [
+            'directory' => storage_path('logs'),
+            'per_page' => 20,
+        ],
     ],
 
     // Fields removed from the params of stats and activity logs.
@@ -229,6 +327,7 @@ Watchdog stores sensitive data by design:
 - **Emails** store bodies, recipients, attachment metadata and headers. Password-reset links and tokens can be present.
 - **IP addresses, emails and session IDs** are personal data.
 - **500 notifications** include the exception message, file and line, which can contain sensitive values.
+- **The backoffice** exposes all of the above, plus Laravel log files. It has no built-in authorization: protect its routes with your own admin middleware, policy or gate.
 
 Adjust exclusion lists, retention and database access to match your privacy requirements.
 
@@ -255,6 +354,14 @@ After any fix below, run `php artisan config:clear`.
 
 **`watchdog:analyze-logins` does not group attempts as expected**
 - If your login form uses a field other than `email`, attempts are recorded with a null email and cannot be grouped by email.
+
+**Backoffice routes return 404**
+- Publish the route file and include it from `routes/web.php`: `require base_path('routes/watchdog-backoffice.php');`.
+- Run `php artisan route:clear` if the routes were cached before you added the file.
+- If the views fail on `<x-app-layout>`, install Laravel Breeze or publish the views and replace the layout with your own component.
+
+**A log entry cannot be deleted**
+- PHP must be able to write to the selected file in `backoffice.laravel_logs.directory`. Check the file permissions and the configured directory.
 
 ## License
 

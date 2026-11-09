@@ -58,8 +58,7 @@ final class DiscordNotificationTest extends TestCase
     {
         config()->set('laravel-watchdog.discord.only_production', false);
 
-        // Replace the default wildcard fake so the URL-specific 500 response
-        // is the first matching stub.
+        // Replace the default wildcard fake so the URL-specific 500 response is the first matching stub.
         Http::swap(new Factory());
         Http::fake([
             self::LOGIN_WEBHOOK => Http::response('server error', 500),

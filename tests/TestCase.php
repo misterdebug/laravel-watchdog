@@ -20,13 +20,6 @@ use RuntimeException;
 
 use function Orchestra\Testbench\load_migration_paths;
 
-/**
- * Base test case for the Laravel Watchdog package.
- *
- * The suite never touches the host application. It runs against a dedicated
- * MySQL database whose name must contain "test" (safety guard), and uses the
- * package's own autoloader + Testbench skeleton application.
- */
 #[WithMigration('laravel')]
 abstract class TestCase extends OrchestraTestCase
 {
@@ -149,18 +142,6 @@ abstract class TestCase extends OrchestraTestCase
             'password' => 'password',
         ], $attributes));
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Feature toggles used through #[DefineEnvironment] attributes.
-    |--------------------------------------------------------------------------
-    |
-    | Testbench applies #[DefineEnvironment] before setUp(), which means the
-    | flags that are read at provider boot time (login_attempts, sent_emails)
-    | and at ExceptionHandler::register() time (security_404, security_422,
-    | error500_alert) are correctly taken into account.
-    |
-    */
 
     protected function disableStats($app): void
     {
