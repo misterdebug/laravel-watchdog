@@ -212,14 +212,16 @@ A replacement class must extend `Illuminate\Notifications\Notification`, return 
 | 500 error | `Error500Notification` | queued, rate limited |
 | Daily security report | `DailySecurityReportNotification` | synchronous |
 
+Every Discord message is prefixed with the application name (`APP_NAME`), so several applications can share the same webhooks and still identify the source.
+
 ```text
-🔑 New admin login
+**[YOUR APP]** 🔑 New admin login
 Email: admin@example.com
 IP: 203.0.113.10
 ```
 
 ```text
-🔴 500 Error
+**[YOUR APP]** 🔴 500 Error
 `Call to a member function on null`
 /app/Services/InvoiceService.php:42
 https://example.com/invoices/12

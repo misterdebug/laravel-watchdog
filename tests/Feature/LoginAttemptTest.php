@@ -59,7 +59,7 @@ final class LoginAttemptTest extends TestCase
 
         Http::assertSent(function ($request) {
             return $request->url() === self::LOGIN_WEBHOOK
-                && $request['content'] === "🔑 **New admin login**\nEmail: admin@example.com\nIP: 127.0.0.1";
+                && $request['content'] === "**[Watchdog Test]** 🔑 **New admin login**\nEmail: admin@example.com\nIP: 127.0.0.1";
         });
     }
 

@@ -40,7 +40,7 @@ final class DiscordNotificationTest extends TestCase
         Http::assertSent(function (ClientRequest $request) {
             return $request->url() === self::LOGIN_WEBHOOK
                 && $request->method() === 'POST'
-                && $request['content'] === "🔑 **New admin login**\nEmail: admin@example.com\nIP: 10.0.0.1";
+                && $request['content'] === "**[Watchdog Test]** 🔑 **New admin login**\nEmail: admin@example.com\nIP: 10.0.0.1";
         });
     }
 
@@ -71,6 +71,44 @@ final class DiscordNotificationTest extends TestCase
 
         Http::assertSentCount(1);
         Log::shouldHaveReceived('error')->once();
+    }
+
+    public function test_every_discord_payload_is_prefixed_with_the_app_name(): void
+    {
+        config()->set('laravel-watchdog.discord.only_production', false);
+
+        $custom = new class extends \Illuminate\Notifications\Notification
+        {
+            public function via($notifiable): array
+            {
+                return ['watchdog-discord'];
+            }
+
+            public function toDiscord(): array
+            {
+                return ['content' => 'Custom message'];
+            }
+        };
+
+        Notification::route('watchdog-discord', self::LOGIN_WEBHOOK)->notify($custom);
+
+        Http::assertSent(function (ClientRequest $request) {
+            return $request->url() === self::LOGIN_WEBHOOK
+                && $request['content'] === '**[Watchdog Test]** Custom message';
+        });
+    }
+
+    public function test_no_prefix_is_added_when_the_app_name_is_empty(): void
+    {
+        config()->set('laravel-watchdog.discord.only_production', false);
+        config()->set('app.name', '');
+
+        Notification::route('watchdog-discord', self::LOGIN_WEBHOOK)
+            ->notify(new LoginNotification('10.0.0.1', 'admin@example.com'));
+
+        Http::assertSent(function (ClientRequest $request) {
+            return $request['content'] === "🔑 **New admin login**\nEmail: admin@example.com\nIP: 10.0.0.1";
+        });
     }
 
     public function test_the_default_notifiable_route_is_resolved_by_the_channel(): void

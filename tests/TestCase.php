@@ -69,6 +69,8 @@ abstract class TestCase extends OrchestraTestCase
 
         $app['config']->set('auth.providers.users.model', User::class);
 
+        $app['config']->set('app.name', 'Watchdog Test');
+
         // Notifications must actually reach the fake HTTP client during tests.
         $app['config']->set('laravel-watchdog.discord.only_production', false);
         $app['config']->set('laravel-watchdog.discord.webhooks', [

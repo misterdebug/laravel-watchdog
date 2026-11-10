@@ -31,12 +31,24 @@ class WatchdogDiscordChannel
         }
 
         try {
-            Http::throw()->post($url, $notification->toDiscord());
+            Http::throw()->post($url, $this->payload($notification));
         } catch (\Exception $e) {
             Log::error('[laravel-watchdog] Discord webhook failed', [
                 'url'   => $url,
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    protected function payload(Notification $notification): array
+    {
+        $payload = $notification->toDiscord();
+        $appName = trim((string) config('app.name'));
+
+        if ($appName !== '' && is_string($payload['content'] ?? null)) {
+            $payload['content'] = '**['.$appName.']** '.$payload['content'];
+        }
+
+        return $payload;
     }
 }
